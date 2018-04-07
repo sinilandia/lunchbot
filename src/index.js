@@ -67,7 +67,7 @@ const fetchGrillsonMenu = async (url = menuUrl2) => new Promise((resolve) => {
   logger.info('Fetching Pompier menu for today...');
   const text = await fetchPompierMenu();
   const text2 = await fetchGrillsonMenu();
-  const text3 = `RUPLA: \n${text} \n ON THE ROCKS: \n${text2}`;
+  const text3 = `RUPLA: \n${text} \n\n ON THE ROCKS: \n${text2}`;
   logger.info(`Result:\n${menuUrl}|${text}`);
   logger.info(`Result:\n${menuUrl2}|${text2}`);
   logger.info(text3);
@@ -75,7 +75,7 @@ const fetchGrillsonMenu = async (url = menuUrl2) => new Promise((resolve) => {
 
   const payload2 = { text: text3 };
   request({
-    uri: 'https://hooks.slack.com/services/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',
+    uri: process.env.SLACK_WEBHOOK,
     method: 'POST',
     json: payload2,
   }, () => logger.info('Posted menu2...'));
