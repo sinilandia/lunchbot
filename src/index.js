@@ -28,8 +28,7 @@ const parsePompierMenu = (html) => {
     const lines = linesString.split('\n');
 
     // Format output
-    return [`<${menuUrl}|${lines[0]}>`, ...lines.slice(1, lines.length)].join('\n') && 
-    [`<${menuUrl2}|${lines[0]}>`, ...lines.slice(1, lines.length)].join('\n');
+    return [`<${lines[0]}>`, ...lines.slice(1, lines.length)].join('\n');
   }
 
   return 'Error fetching Pompier lunch information';
@@ -68,6 +67,14 @@ const fetchGrillsonMenu = async (url = menuUrl2) => new Promise((resolve) => {
   logger.info('Fetching Pompier menu for today...');
   const text = await fetchPompierMenu();
   const text2 = await fetchGrillsonMenu();
-  logger.info(`Result:\n${text}`);
-  logger.info(`Result:\n${text2}`);
+  logger.info(`Result:\n${menuUrl}|${text}`);
+  logger.info(`Result:\n${menuUrl2}|${text2}`);
+  const payload = {text};
+  request({
+    uri: 'https://hooks.slack.com/services/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',
+    method: 'POST',
+    json: payload,
+  }, () => logger.info('Posted menu to slack!'));
+
+
 })();
