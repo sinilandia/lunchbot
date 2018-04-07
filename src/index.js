@@ -3,18 +3,19 @@ import request from 'request';
 
 import logger from './log';
 
-const menuUrl = 'http://pompier.fi/albertinkatu/lounas/';
-const weekdays = ['Maanantai', 'Tiistai', 'Keskiviikko', 'Torstai', 'Perjantai'];
+const menuUrl = 'https://www.lounaat.info/lounas/rupla/helsinki';
+const menuUrl2 = 'https://www.lounaat.info/lounas/on-the-rocks-kallio/helsinki';
+const weekdays = ['Maanantaina', 'Tiistaina', 'Keskiviikkona', 'Torstaina', 'Perjantaina'];
 
 const parsePompierMenu = (html) => {
-  const dayIndex = new Date().getDay() - 1;
+  const dayIndex = new Date().getDay() - 3;
   if (dayIndex < 0 || dayIndex >= weekdays.length) {
     return 'Lunch available only weekdays!';
   }
 
   // Parse menu text
   const jsdom = new JSDOM(html);
-  const cssSelector = '.page-content';
+  const cssSelector = '.item-container';
   const menu = jsdom.window.document.querySelector(cssSelector).textContent;
 
   // Find correct substring from menu
@@ -27,7 +28,8 @@ const parsePompierMenu = (html) => {
     const lines = linesString.split('\n');
 
     // Format output
-    return [`<${menuUrl}|${lines[0]}>`, ...lines.slice(1, lines.length)].join('\n');
+    return [`<${menuUrl}|${lines[0]}>`, ...lines.slice(1, lines.length)].join('\n') && 
+    [`<${menuUrl2}|${lines[0]}>`, ...lines.slice(1, lines.length)].join('\n');
   }
 
   return 'Error fetching Pompier lunch information';
@@ -47,8 +49,25 @@ const fetchPompierMenu = async (url = menuUrl) => new Promise((resolve) => {
   );
 });
 
+const fetchGrillsonMenu = async (url = menuUrl2) => new Promise((resolve) => {
+  request(
+    url,
+    (error, { statusCode }, html) => {
+      if (!error && statusCode === 200) {
+        return resolve(parsePompierMenu(html));
+      }
+      const errorMsg = `Failed fetching Pompier menu: ${statusCode}`;
+      logger.error(errorMsg);
+      return resolve(errorMsg);
+    },
+  );
+});
+
+
 (async () => {
   logger.info('Fetching Pompier menu for today...');
   const text = await fetchPompierMenu();
+  const text2 = await fetchGrillsonMenu();
   logger.info(`Result:\n${text}`);
+  logger.info(`Result:\n${text2}`);
 })();
